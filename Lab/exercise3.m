@@ -18,6 +18,11 @@ axis off image ; title('Desired output (sharp)') ;
 
 colormap gray ;
 
+%% Number of training and validation images and resolution
+
+size(imdb.images.data)
+size(imdb.images.label)
+
 %% Part 3.2: Create a network architecture
 %
 % The expected input size (a single 64 x 64 x 1 image patch). This is
@@ -58,7 +63,7 @@ trainOpts.gpus = [] ;
 % Uncomment for GPU training:
 %trainOpts.expDir = 'data/text-small-gpu' ;
 %trainOpts.gpus = [1] ;
-trainOpts.batchSize = 16 ;
+trainOpts.batchSize = 64 ;
 trainOpts.learningRate = 0.02 ;
 trainOpts.plotDiagnostics = false ;
 %trainOpts.plotDiagnostics = true ; % Uncomment to plot diagnostics
