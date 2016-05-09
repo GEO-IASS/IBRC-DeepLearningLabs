@@ -40,7 +40,7 @@ filter used to generate them?} Feature channel 1 shows the same result as in pre
 \subsubsection{Convolving a batch of images}
 \paragraph{Task 4: Run the code above and visualize the result. Convince yourself that each filter is applied to each image. Explain the procedure you used to check this?} First using \texttt{size(y)} gives: 148x198x5x2, being 5 the number of channels and 2 the number of images that were concatenated in the 4th dimension of the input tensor x. Using \texttt{showFeatureChannels(y(:,:,:,1)} the resulting feature channels of the first image are shown, same can be done for the second. See Figure \ref{fig:113}.
 
-\paragraph{Question 6: Why are we interested in working on (mini) batches of images instead of single images? Give all the reasons that you know.} We are interested in doing that because we can re-use a filter bank and apply it at the same time against a bigger number of images. 
+\paragraph{Question 6: Why are we interested in working on (mini) batches of images instead of single images? Give all the reasons that you know.} We are interested in doing that because we can re-use a filter bank and apply it at the same time against a larger number of images. Also it is needed for performing mini-batch stochastic gradient descent (SGD).
 \begin{figure}[htbp]
  \centering
  \includegraphics[width=0.8\textwidth]{113a}
@@ -80,7 +80,7 @@ filter used to generate them?} Feature channel 1 shows the same result as in pre
  \label{fig:122}
 \end{figure}
 
-\paragraph{Task 8: Take a look at the available functionalities provided by MatConvNet.	Find the functionality that can do both max pooling and average pooling. Apply both max and average pooling with a couple of different sizes on both the input image and the output of the convolution. Visualize the results. Discuss the results.} Figure \ref{fig:max} shows the result of applying max and average pooling to the input image and to the output image with different sizes.
+\paragraph{Task 8: Take a look at the available functionalities provided by MatConvNet.	Find the functionality that can do both max pooling and average pooling. Apply both max and average pooling with a couple of different sizes on both the input image and the output of the convolution. Visualize the results. Discuss the results.} Figure \ref{fig:max} shows the result of applying max and average pooling to the input image and to the output image with different sizes. With average pooling the image gets blurred while still being recognizable. The larger the size of the pooling filter the more blur the image gets. With max pooling, the images get divided in super-pixels and the contrast seems to be enhanced. This can be better seen in the images after the filter is applied. This suggest doing subsampling.
 
 \begin{figure}[htbp]
  \centering
@@ -90,7 +90,57 @@ filter used to generate them?} Feature channel 1 shows the same result as in pre
 \end{figure}
 
 \section{Backpropagation}
-\paragraph{Question 10: The output derivatives have the same size as the parameters in the network. Why?} They have the same size because...
-\end{document}
 
+\paragraph{Question 10: The output derivatives have the same size as the parameters in the network. Why?} They have the same size because, applying the chain rule, each of the derivatives of the output is computed as a number of derivatives as well depending on the connections of the net which are in turn also computed in the same way according to the connections and functions to previous layers or input.
+\paragraph{Question 11: From the procedure above what kind of derivative is the vector p\_l representing at each step l?} It is representing the partial derivatives of layer l respect to x.
+
+\subsection{Backward mode verification}
+\paragraph{Question 12: Open the file checkDerivativeNumerically.m. What is it trying to do? Identify the lines in which the above expression should be evaluated.} Takes the scalar function F, its tensor input X and its derivative DX at X and compares DX to a numerical approximation of the derivative returing their difference ERR.
+\paragraph{Question 13: Note that checkDerivativeNumerically() is applied to the function @(x) proj(p,vl nnconv(x, w, [])). This syntax defines a function on the fly (an anonymous closure to be more precise). In this case, the purpose of the closure is to evaluate the expression for a variable x and a fixed value of w. Furthermore, the closure projects the output of vl\_nnconv() onto p by calling the proj() function. Why?} Because the numerical derivatives computed in the forward mode have to be compared with the projected derivatives computed with the backward mode with the same projection vector.
+\paragraph{Task 9: Complete the code in checkDerivativeNumerically() to compute the approximate derivative of f w.r.t. x. Run the code, visualizing the results. Convince yourself that the numerical and analytical derivatives are nearly identical.} Figure \ref{fig:21a} shows the result of checkDerivativeNumerically(). It can be seen that the difference between both approaches to compute the derivatives is almost null.
+\begin{figure}[htbp]
+ \centering
+ \includegraphics[width=\textwidth]{21a}
+ \caption{Comparison between backward mode and forward mode with numerical derivative.}
+ \label{fig:21a}
+\end{figure}
+\paragraph{Task 10: Modify the code to compute the derivative of the first element of the output tensor y with respect to all the elements of the input tensor x. Hint: it suffices to change the value of p.}
+\begin{figure}[htbp]
+ \centering
+ \includegraphics[width=\textwidth]{21b}
+ \caption{Comparison between backward mode and forward mode with numerical derivative for first element of output tensor y.}
+ \label{fig:21b}
+\end{figure}
+\paragraph{Task 11: Modify the code to compute the derivative with respect to the convolution parameters w instead of the convolution input x.}
+\begin{figure}[htbp]
+ \centering
+\includegraphics[width=\textwidth]{21c}
+ \caption{Comparison between backward mode and forward mode with numerical derivative for first element of output tensor y respect convolution parameters w.}
+ \label{fig:21c}
+\end{figure}
+\paragraph{Question 14: In the code above, in backward mode the projection p is fed to the vl nnrelu operator. However,	the vl nnconv operator now receives dy as projection. Why?} Because dy is already the projected derivative and thus includes the projection.
+\paragraph{Task 12: Run the code and use checkDerivativeNumerically() to compare the analytical and numerical derivatives. Do they differ?} Figure \ref{fig:22a} shows the result of implementing backprop in a network of two layers. They are mostly equal but a small difference can be seen in the second image in the batch around (6,8).
+\begin{figure}[htbp]
+ \centering
+\includegraphics[width=\textwidth]{22a}
+\caption{Projected derivatives with forward and backward mode in a two layer network.}
+ \label{fig:22a}
+\end{figure}
+
+\subsection{Design and verify your own layer}
+\paragraph{Task 13: Verify that the forward and backward functions are correct by computing the derivatives numerically using checkDerivativeNumerically().} Figure \ref{fig:23a} shows the correctness of the forward and bacward functions.
+\begin{figure}[htbp]
+ \centering
+\includegraphics[width=\textwidth]{23a}
+\caption{Derivatives of backward and forward functions for l2Loss function.}
+ \label{fig:23a}
+\end{figure}
+\paragraph{Task 14: Implement the l1LossForward.m and l1LossBackward.m to compute the L1 distance (sum of absolute differences). Make sure that both the forward and backward modes are correctly modified by verifying the result numerically once more. What happens for the components of x that are zero or very close to zero?} Figure \ref{fig:23b} shows the resulting derivatives computed with backward and forward mode for the L1Loss function. When the derivatives are very small some differences actually appear between both ways of computing the derivatives.
+\begin{figure}[htbp]
+ \centering
+\includegraphics[width=\textwidth]{23bb}
+\caption{Derivatives of backward and forward functions for l1Loss function.}
+ \label{fig:23b}
+\end{figure}
+\end{document}
 
