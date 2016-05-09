@@ -6,3 +6,5 @@ Repo for the exercises and labs at DD2427 Image Based Recognition and Classifica
 - Exercise 3: Training an SVM with SGD from HOG descriptors using subset of Daimler Pedestrian Path Prediction Benchmark Dataset.
 - Exercise 4: Investigating the effectiveness of a ConvNet image
 feature to represent an image by using it to train a SVM.
+
+LAB: ConvNet lab. Finally train a convolutional network for image deblurring.
